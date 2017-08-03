@@ -5,14 +5,14 @@ Secret,1-1,Empire
 OG,2-0,C9
 Newbee,1-1,IG
 VP,2-0,DC
-LFY,2-0,XtcN
+LFY,2-0,XctN
 Secret,1-1,Infamous
 Liquid,2-0,Fnatic
 LGD,2-0,Empire
 EG,1-1,IG.V
 Newbee,2-0,C9
 OG,1-1,DC
-VP,1-1,XtcN
+VP,1-1,XctN
 LFY,2-0,HR
 EG,1-1,Liquid
 LGD,2-0,Secret
