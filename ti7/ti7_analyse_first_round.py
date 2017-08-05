@@ -1,5 +1,5 @@
 
-DATA_PATH = "ti7_data_0804.txt"
+DATA_PATH = "ti7_data_0805.txt"
 DEFAULT_FORMAT = "{:>12}  {:>12}  {:>12}"
 
 def get_file_content(file_path):
