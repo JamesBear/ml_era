@@ -70,6 +70,24 @@ def h_theta_x(theta, x_i):
     #print(np.dot(theta, x_i))
     return 1/(1+np.exp(-np.dot(theta, x_i)))
 
+def feature_scaling(x):
+    n = x.shape[1]
+    m = x.shape[0]
+    feature_scales = np.array([1.0]*n)
+    scaled_x = np.copy(x)
+
+    for i in range(1, n):
+        col_max = max(abs(x[:,i]))
+        if abs(col_max) < 0.0001:
+            continue
+        feature_scales[i] = 1.0/col_max
+        for j in range(m):
+            o = scaled_x[j,i]
+            scaled_x[j,i] = o*feature_scales[i]
+
+    return feature_scales, scaled_x
+
+
 # I doubt if it works on matrices
 #v_h_theta_x = np.vectorize(h_theta_x)
 
@@ -79,12 +97,15 @@ def gradient_descent(alpha, X, y):
     m = len(X)
     theta_length = len(X[0])
     theta = np.zeros(theta_length)
-    epsilon = 0.00001
+    epsilon = 0.0000001
     iters = 0
     max_iter = 100000
+    feature_scales, scaled_X = feature_scaling(X)
+    print('feature_scaling: ', feature_scales)
+
     while True:
-        hs = np.array([h_theta_x(theta, X_i) for X_i in X])
-        gradient = alpha/m * np.dot(X.T, hs - y)
+        hs = np.array([h_theta_x(theta, X_i) for X_i in scaled_X])
+        gradient = alpha/m * np.dot(scaled_X.T, hs - y)
         theta = theta - gradient
         mag_gradient = np.dot(gradient, gradient)
         print('mag_gradient: ', mag_gradient)
@@ -95,6 +116,7 @@ def gradient_descent(alpha, X, y):
             print('Max iteration reached!')
             break
     print('Iteration: ', iters)
+    theta = theta * feature_scales
 
     return theta
 
@@ -116,13 +138,15 @@ def score(test_set, theta):
     score = correct / m
     return score
 
+
+
 def logistic_regression(dataset):
     test_count = int(len(dataset)*TEST_DATASET_PROPORTION)
     test_set = dataset[:test_count]
     train_set = dataset[test_count:]
     print('test dataset rows:', len(test_set))
     print('train dataset rows:', len(train_set))
-    alpha = 0.0001
+    alpha = 0.1
     X = train_set[:,:-1]
     m = len(train_set)
     const = np.array([1] * m).reshape(m, 1)
