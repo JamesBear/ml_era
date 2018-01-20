@@ -5,9 +5,14 @@ Since there're missing values in the dataset, I'll replace them with mean values
 import numpy as np
 import csv
 import math
+import matplotlib.pyplot as plt
+import os
+from sklearn import datasets, linear_model, discriminant_analysis#, cross_validation
+from sklearn import model_selection # this replaces the cross_validation module
+
 
 DATA_FILE_PATH = 'hcc-survival/hcc-data.txt'
-TEST_DATASET_PROPORTION = 0.33
+TEST_DATASET_PROPORTION = 0.35
 
 def read_csv(FILE_PATH):
     result = []
@@ -101,6 +106,7 @@ def gradient_descent(alpha, X, y):
     iters = 0
     max_iter = 100000
     feature_scales, scaled_X = feature_scaling(X)
+    print('scaled_X:', scaled_X)
     print('feature_scaling: ', feature_scales)
 
     while True:
@@ -108,7 +114,7 @@ def gradient_descent(alpha, X, y):
         gradient = alpha/m * np.dot(scaled_X.T, hs - y)
         theta = theta - gradient
         mag_gradient = np.dot(gradient, gradient)
-        print('mag_gradient: ', mag_gradient)
+        #print('mag_gradient: ', mag_gradient)
         if mag_gradient < epsilon:
             break
         iters += 1
@@ -127,16 +133,28 @@ def score(test_set, theta):
     const = np.array([1] * m).reshape(m, 1)
     X = np.append(const, X, axis=1)
     correct = 0
+    result = []
     for i in range(m):
         p = h_theta_x(theta, X[i])
         if p >= 0.5:
-            h = 1
+            h = 1.0
         else:
-            h = 0
+            h = 0.0
+        result.append(h)
         if h == y[i]:
             correct += 1
+    print('h: ', np.array(result))
+    print('y: ', y)
     score = correct / m
     return score
+
+def test_LogisticRegression(*data):
+    print('test_LogisiticRegression:')
+    X_train, X_test, y_train, y_test = data
+    regr = linear_model.LogisticRegression()
+    regr.fit(X_train, y_train)
+    print('Coefficients: {}, intercept {:}'.format(regr.coef_, regr.intercept_))
+    print('Score: {:.5}'.format(regr.score(X_test, y_test)))
 
 
 
@@ -150,15 +168,23 @@ def logistic_regression(dataset):
     X = train_set[:,:-1]
     m = len(train_set)
     const = np.array([1] * m).reshape(m, 1)
-    X = np.append(const, X, axis=1)
+    added_X = np.append(const, X, axis=1)
     y = train_set[:,-1]
     #print(len(train_set[0]), len(X[0]))
     #print(y)
     #print(len(y))
-    theta = gradient_descent(alpha, X, y)
+    theta = gradient_descent(alpha, added_X, y)
     _score = score(test_set, theta)
     print('theta:', theta)
     print('score(accuracy):', _score)
+    print('-'*99)
+    print('Below is the built-in logistic regression model from sklearn')
+
+    X_ds = dataset[:,:-1]
+    y_ds = dataset[:,-1]
+    X_train, X_test, y_train, y_test = model_selection.train_test_split(X_ds, y_ds, test_size=0.35, random_state=0, stratify=y_ds)
+    test_LogisticRegression(X_train, X_test, y_train, y_test)
+
 
 #print(ds_raw)
 #print(len(ds_raw))
@@ -170,6 +196,7 @@ def entry():
     #print_list(ds)
     print('number of records: ', len(ds))
     logistic_regression(ds)
+
 
 entry()
 input("Press enter to continue..")
