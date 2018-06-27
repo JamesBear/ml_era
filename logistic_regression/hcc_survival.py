@@ -1,5 +1,8 @@
 """
 Since there're missing values in the dataset, I'll replace them with mean values.
+
+20180627: Replace missing values with median, because some features are norminal.
+Another moral: MinMaxScaler works significantly better than StandardScaler.
 """
 
 import numpy as np
