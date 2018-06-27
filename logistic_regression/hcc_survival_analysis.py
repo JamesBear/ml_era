@@ -18,7 +18,7 @@ import pandas as pd
 DATA_FILE_PATH = 'hcc-survival/hcc-data.txt'
 DATA_COLUMN_FILE_PATH = 'hcc-survival/hcc-data-row-desc.txt'
 TEST_DATASET_PROPORTION = 0.35
-IMPORTANCE_THRESHOLD = 0.01
+IMPORTANCE_THRESHOLD = 0.002
 
 def read_csv(FILE_PATH):
     df = pd.read_csv(FILE_PATH, na_values='?')
