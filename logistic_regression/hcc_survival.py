@@ -9,12 +9,16 @@ import matplotlib.pyplot as plt
 import os
 from sklearn import datasets, linear_model, discriminant_analysis#, cross_validation
 from sklearn import model_selection # this replaces the cross_validation module
+import pandas as pd
 
 
 DATA_FILE_PATH = 'hcc-survival/hcc-data.txt'
+DATA_COLUMN_FILE_PATH = 'hcc-survival/hcc-data-row-desc.txt'
 TEST_DATASET_PROPORTION = 0.35
 
 def read_csv(FILE_PATH):
+    df = pd.read_csv(FILE_PATH, na_values='?')
+    return df
     result = []
     with open(FILE_PATH, newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='|')
@@ -24,7 +28,35 @@ def read_csv(FILE_PATH):
 
 ds_raw = read_csv(DATA_FILE_PATH)
 
+def read_columns():
+    columns = []
+    with open(DATA_COLUMN_FILE_PATH, 'r') as f:
+        content = f.read().strip()
+        splitted = content.splitlines()
+        #splitted = splitted[:-1]
+        for line in splitted:
+            index = line.find(': ')
+            columns.append([line[:index],line[index+2:]])
+
+    return np.array(columns)
+
+
 def handle_missing_values_and_convert_to_nsarray(original_dataset):
+    df = original_dataset
+    columns = read_columns()
+    #print(columns)
+    df.columns = columns[:,0]
+    cols = df.columns
+    print(df.values)
+    print(df.values.shape)
+    print(df.isnull().sum())
+    from sklearn.preprocessing import Imputer
+    imr = Imputer(missing_values='NaN', strategy='median', axis=0)
+    imr = imr.fit(df)
+    imputed_data = imr.transform(df.values)
+    #print(imputed_data)
+    df[:] = imputed_data
+    return df
     columns = len(original_dataset[0])
     rows = len(original_dataset)
     is_int = [True] * columns
@@ -73,13 +105,16 @@ def print_list(_list):
 
 def h_theta_x(theta, x_i):
     #print(np.dot(theta, x_i))
-    return 1/(1+np.exp(-np.dot(theta, x_i)))
+    z = np.dot(theta, x_i)
+    z = np.clip( z, -500, 500 )
+    return 1/(1+np.exp(-z))
 
 def feature_scaling(x):
     n = x.shape[1]
     m = x.shape[0]
     feature_scales = np.array([1.0]*n)
     scaled_x = np.copy(x)
+    return feature_scales, scaled_x
 
     for i in range(1, n):
         col_max = max(abs(x[:,i]))
@@ -159,9 +194,16 @@ def test_LogisticRegression(*data):
 
 
 def logistic_regression(dataset):
+    df = dataset
+    dataset = df.values
     test_count = int(len(dataset)*TEST_DATASET_PROPORTION)
     test_set = dataset[:test_count]
     train_set = dataset[test_count:]
+    from sklearn.preprocessing import MinMaxScaler
+    scaler = MinMaxScaler()
+    scaler.fit(train_set)
+    train_set = scaler.transform(train_set)
+    test_set = scaler.transform(test_set)
     print('test dataset rows:', len(test_set))
     print('train dataset rows:', len(train_set))
     alpha = 0.1
